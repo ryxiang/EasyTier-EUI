@@ -184,35 +184,58 @@
               <var-icon name="help-circle-outline" size="16" color="var(--color-primary)" @click="showCloudHelp = true" class="help-icon" />
             </div>
           </div>
-          <div class="input-row">
-            <div class="input-section">
-              <div class="section-subtitle">{{ $t('config.cloudProfileName') }}</div>
-              <var-input v-model="cloudConfig.profile_name" :placeholder="$t('config.cloudProfileName')" variant="outlined" size="small" :rules="[(v) => !!v || $t('config.cloudProfileNameRequired')]" />
+
+          <var-cell>
+            <var-input
+              v-model="cloudConfig.profile_name"
+              :placeholder="$t('config.cloudProfileName')"
+              size="small"
+              variant="outlined"
+              :rules="[(v) => !!v || $t('config.cloudProfileNameRequired')]"
+            >
+              <template #label>{{ $t('config.cloudProfileName') }}</template>
+            </var-input>
+          </var-cell>
+
+          <var-cell>
+            <var-input
+              v-model="cloudConfig.bootstrap_token"
+              :placeholder="$t('config.cloudTokenHint')"
+              size="small"
+              variant="outlined"
+              :rules="[(v) => !!v || $t('config.cloudTokenRequired')]"
+            >
+              <template #label>
+                {{ $t('config.cloudToken') }}
+                <var-icon name="help-circle-outline" size="14" color="var(--color-primary)" @click="showCloudHelp = true" class="help-icon" />
+              </template>
+            </var-input>
+          </var-cell>
+
+          <var-cell>
+            <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+              <var-input
+                v-model="cloudConfig.config_server"
+                placeholder="tcp://et-web.console.easytier.net:22020"
+                size="small"
+                variant="outlined"
+                style="flex: 1;"
+              >
+                <template #label>{{ $t('config.cloudServer') }}</template>
+              </var-input>
+              <var-button type="primary" size="small" @click="fetchConfigServerUrl" :loading="isFetchingServer">
+                {{ $t('config.cloudFetchServer') }}
+              </var-button>
             </div>
-            <div class="input-section">
-              <div class="section-subtitle">{{ $t('config.cloudToken') }}
-                <var-icon name="help-circle-outline" size="16" color="var(--color-primary)" @click="showCloudHelp = true" class="help-icon" />
-              </div>
-              <var-input v-model="cloudConfig.bootstrap_token" :placeholder="$t('config.cloudTokenHint')" variant="outlined" size="small" :rules="[(v) => !!v || $t('config.cloudTokenRequired')]" />
+          </var-cell>
+
+          <var-cell>
+            <div class="cloud-secure-row">
+              <span class="cloud-secure-label">{{ $t('config.cloudSecureMode') }}</span>
+              <var-switch v-model="cloudConfig.secure_mode" />
+              <span class="cloud-secure-state">{{ cloudConfig.secure_mode ? $t('common.enabled') : $t('common.disabled') }}</span>
             </div>
-          </div>
-          <div class="input-row">
-            <div class="input-section">
-              <div class="section-subtitle">{{ $t('config.cloudServer') }}</div>
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <var-input v-model="cloudConfig.config_server" placeholder="tcp://et-web.console.easytier.net:22020" variant="outlined" size="small" style="flex: 1;" />
-                <var-button type="primary" size="small" @click="fetchConfigServerUrl" :loading="isFetchingServer">{{ $t('config.cloudFetchServer') }}</var-button>
-              </div>
-            </div>
-            <div class="input-section">
-              <div class="section-subtitle">{{ $t('config.cloudSecureMode') }}</div>
-              <label class="cloud-secure-toggle">
-                <input type="checkbox" v-model="cloudConfig.secure_mode" />
-                <span class="switch-slider"></span>
-                <span style="margin-left: 8px; font-size: 13px; color: var(--color-text);">{{ cloudConfig.secure_mode ? $t('common.enabled') : $t('common.disabled') }}</span>
-              </label>
-            </div>
-          </div>
+          </var-cell>
         </var-paper>
 
         <!-- 云端配置信息展示（查看已有云端配置时） -->
@@ -2255,15 +2278,12 @@ html.dark .sk-breathe {
 /* ===== 云端配置面板 ===== */
 .cloud-config-panel {
   margin: 0 0 16px;
-  padding: 20px;
+  padding: 8px 20px 20px;
   border-radius: 16px;
   background: var(--color-surface) !important;
-  position: relative;
-  z-index: 0;
-}
-.cloud-config-panel > * {
-  position: relative;
-  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 html.dark .cloud-config-panel {
   background: var(--color-surface-container) !important;
@@ -2946,68 +2966,25 @@ html.dark .config-section-panel {
 }
 
 /* ===== 云端配置样式 ===== */
-.cloud-secure-toggle {
+.cloud-secure-row {
   display: flex;
   align-items: center;
-  cursor: pointer;
-  padding: 4px 0;
+  gap: 12px;
+  padding: 6px 0;
+  width: 100%;
 }
 
-.cloud-secure-toggle .switch-wrapper,
-.cloud-secure-toggle input[type="checkbox"] {
-  position: relative;
-  display: inline-block;
-  width: 36px;
-  height: 20px;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  outline: none;
-  border-radius: 10px;
-  background-color: var(--color-text-disabled);
-  transition: background-color 0.2s;
-  flex-shrink: 0;
-  margin: 0;
+.cloud-secure-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  flex: 1;
 }
 
-.cloud-secure-toggle .switch-wrapper {
-  position: relative;
-}
-
-.cloud-secure-toggle .switch-slider {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--color-text-disabled);
-  border-radius: 10px;
-  transition: background-color 0.2s;
-  pointer-events: none;
-}
-
-.cloud-secure-toggle .switch-slider::before {
-  content: '';
-  position: absolute;
-  height: 16px;
-  width: 16px;
-  left: 2px;
-  bottom: 2px;
-  background-color: #fff;
-  border-radius: 50%;
-  transition: transform 0.2s;
-}
-
-.cloud-secure-toggle input[type="checkbox"]:checked {
-  background-color: var(--color-primary);
-}
-
-.cloud-secure-toggle input[type="checkbox"]:checked ~ .switch-slider {
-  background-color: var(--color-primary);
-}
-
-.cloud-secure-toggle input[type="checkbox"]:checked ~ .switch-slider::before {
-  transform: translateX(16px);
+.cloud-secure-state {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  min-width: 32px;
 }
 
 .cloud-info-row {

@@ -1,5 +1,6 @@
 ##  1.7
 - 新增：云端配置拉取（Token 直连模式），支持从 EasyTier Pro 云端拉取网络配置
+- 修复：云端配置面板渲染问题，重构为标准 var-cell/var-switch 组件
 - 内核版本：EasyTier v2.6.4
 
 ##  1.6

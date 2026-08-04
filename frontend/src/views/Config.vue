@@ -176,7 +176,7 @@
 
       <div class="content-area" v-if="selectedConfig || fastSettingMode || cloudMode">
         <!-- 云端配置输入面板 -->
-        <var-paper v-if="cloudMode" class="config-section merged-section" :elevation="2">
+        <var-paper v-if="cloudMode" class="cloud-config-panel" :elevation="2">
           <div class="section-header">
             <div class="section-header-left">
               <var-icon name="cloud-outline" size="24" color="var(--color-primary)" />
@@ -216,7 +216,7 @@
         </var-paper>
 
         <!-- 云端配置信息展示（查看已有云端配置时） -->
-        <var-paper v-if="!cloudMode && currentConfigData.config_mode === 'cloud' && cloudConfigInfo" class="config-section merged-section" :elevation="2">
+        <var-paper v-if="!cloudMode && currentConfigData.config_mode === 'cloud' && cloudConfigInfo" class="cloud-config-panel" :elevation="2">
           <div class="section-header">
             <div class="section-header-left">
               <var-icon name="cloud-outline" size="24" color="var(--color-primary)" />
@@ -2250,6 +2250,23 @@ html.dark .sk-breathe {
   flex-direction: column;
   padding-bottom: 20px;
   background: rgba(var(--color-surface-container-rgb, 226, 236, 250), 0.08) !important;
+}
+
+/* ===== 云端配置面板 ===== */
+.cloud-config-panel {
+  margin: 0 0 16px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--color-surface) !important;
+  position: relative;
+  z-index: 0;
+}
+.cloud-config-panel > * {
+  position: relative;
+  z-index: 2;
+}
+html.dark .cloud-config-panel {
+  background: var(--color-surface-container) !important;
 }
 
 html.dark .merged-section {

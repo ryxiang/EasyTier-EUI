@@ -89,11 +89,9 @@ def start(params=None, *args, **kwargs):
             f"{os.path.join(run_configs.core_dir(), 'easytier-core')}{_ext}",
         ]
         # 根据配置模式选择启动方式
-        if info is not None and info.config_mode == 'cloud' and info.cloud_bootstrap_token:
-            config_server_url = info.cloud_config_server or 'tcp://et-web.console.easytier.net:22020'
-            if config_server_url.endswith('/'):
-                config_server_url = config_server_url[:-1]
-            config_server_url = f"{config_server_url}/{info.cloud_bootstrap_token}"
+        # 云端模式：cloud_config_server 存的是完整 URL (proto://host:port[/token])，直接喂给 --config-server
+        if info is not None and info.config_mode == 'cloud' and info.cloud_config_server:
+            config_server_url = info.cloud_config_server
             secure_mode = 'true' if info.cloud_secure_mode else 'false'
             cmd.extend([
                 "--config-server", config_server_url,

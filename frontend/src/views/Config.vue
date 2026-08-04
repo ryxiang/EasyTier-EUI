@@ -198,36 +198,33 @@
           </var-cell>
 
           <var-cell>
-            <var-input
-              v-model="cloudConfig.bootstrap_token"
-              :placeholder="$t('config.cloudTokenHint')"
-              size="small"
-              variant="outlined"
-              :rules="[(v) => !!v || $t('config.cloudTokenRequired')]"
-            >
-              <template #label>
-                {{ $t('config.cloudToken') }}
-                <var-icon name="help-circle-outline" size="14" color="var(--color-primary)" @click="showCloudHelp = true" class="help-icon" />
-              </template>
-            </var-input>
-          </var-cell>
-
-          <var-cell>
             <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
               <var-input
                 v-model="cloudConfig.config_server"
-                placeholder="tcp://et-web.console.easytier.net:22020"
+                :placeholder="$t('config.cloudServerHint')"
                 size="small"
                 variant="outlined"
+                :rules="[(v) => !!v || $t('config.cloudServerRequired')]"
                 style="flex: 1;"
               >
-                <template #label>{{ $t('config.cloudServer') }}</template>
+                <template #label>
+                  {{ $t('config.cloudServer') }}
+                  <var-icon name="help-circle-outline" size="14" color="var(--color-primary)" @click="showCloudHelp = true" class="help-icon" />
+                </template>
               </var-input>
               <var-button type="primary" size="small" @click="fetchConfigServerUrl" :loading="isFetchingServer">
                 {{ $t('config.cloudFetchServer') }}
               </var-button>
             </div>
           </var-cell>
+
+          <!-- 格式说明（模仿官方 Windows GUI 的提示） -->
+          <div class="cloud-format-hint">
+            <div class="cloud-format-title">{{ $t('config.cloudServerFormatTitle') }}</div>
+            <div class="cloud-format-line">{{ $t('config.cloudServerFormatFull') }}</div>
+            <div class="cloud-format-line">{{ $t('config.cloudServerFormatUser') }}</div>
+            <div class="cloud-format-line">{{ $t('config.cloudServerFormatEmpty') }}</div>
+          </div>
 
           <var-cell>
             <div class="cloud-secure-row">
@@ -248,12 +245,8 @@
             </div>
           </div>
           <div class="cloud-info-row">
-            <span class="cloud-info-label">{{ $t('config.cloudToken') }}</span>
-            <span class="cloud-info-value">{{ cloudConfigInfo.bootstrap_token ? (cloudConfigInfo.bootstrap_token.substring(0, 8) + '****') : '-' }}</span>
-          </div>
-          <div class="cloud-info-row">
             <span class="cloud-info-label">{{ $t('config.cloudServer') }}</span>
-            <span class="cloud-info-value">{{ cloudConfigInfo.config_server || 'tcp://et-web.console.easytier.net:22020' }}</span>
+            <span class="cloud-info-value cloud-info-value-url">{{ cloudConfigInfo.config_server || '-' }}</span>
           </div>
           <div class="cloud-info-row">
             <span class="cloud-info-label">{{ $t('config.cloudSecureMode') }}</span>
@@ -1082,9 +1075,9 @@ const lanIps = ref([])
 
 // 云端配置相关
 const cloudMode = ref(false)
+// config_server 存完整 URL：proto://host:port[/token]
 const cloudConfig = ref({
   profile_name: '',
-  bootstrap_token: '',
   config_server: 'tcp://et-web.console.easytier.net:22020',
   secure_mode: true,
 })
@@ -1755,7 +1748,6 @@ const setupCloudMode = () => {
   showMode.value = 0
   cloudConfig.value = {
     profile_name: '',
-    bootstrap_token: '',
     config_server: 'tcp://et-web.console.easytier.net:22020',
     secure_mode: true,
   }
@@ -1790,12 +1782,17 @@ const saveCloudConfig = () => {
       reject()
       return
     }
-    if (!cloudConfig.value.bootstrap_token.trim()) {
-      toast.warning(t('config.cloudTokenRequired'))
+    if (!cloudConfig.value.config_server.trim()) {
+      toast.warning(t('config.cloudServerRequired'))
       reject()
       return
     }
-    api.configs.saveCloud(cloudConfig.value).then(async res => {
+    // 把 secure_mode 转成字符串，便于后端按字符串/布尔兼容处理
+    const payload = { ...cloudConfig.value }
+    if (typeof payload.secure_mode !== 'string') {
+      payload.secure_mode = payload.secure_mode ? 'true' : 'false'
+    }
+    api.configs.saveCloud(payload).then(async res => {
       toast.success(t('config.saveSuccess'))
       cloudMode.value = false
       await loadConfigs()
@@ -3011,6 +3008,34 @@ html.dark .config-section-panel {
   font-size: 14px;
   color: var(--color-text-secondary);
   word-break: break-all;
+}
+
+.cloud-info-value-url {
+  font-family: var(--font-family-mono, 'SF Mono', Menlo, Consolas, monospace);
+  font-size: 13px;
+  color: var(--color-primary);
+}
+
+.cloud-format-hint {
+  margin: 4px 0 4px;
+  padding: 10px 14px;
+  background: var(--color-surface-variant, rgba(127, 127, 127, 0.06));
+  border-radius: 8px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+
+.cloud-format-title {
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.cloud-format-line {
+  font-family: var(--font-family-mono, 'SF Mono', Menlo, Consolas, monospace);
+  font-size: 12px;
+  color: var(--color-text-secondary);
 }
 
 /* ===== 响应式 ===== */

@@ -1,3 +1,8 @@
+##  1.7.1
+- 变更：云端配置输入框改为单字段「配置服务器地址」，直接填写完整 URL（如 `tcp://host:port/token`），与官方 Windows GUI 保持一致；下方列出支持的格式说明
+- 修复：启动时不再拼接 token 和 config_server，避免单字段输入下重复拼接出错
+- 内核版本：EasyTier v2.6.4
+
 ##  1.7
 - 新增：云端配置拉取（Token 直连模式），支持从 EasyTier Pro 云端拉取网络配置
 - 修复：云端配置面板渲染问题，重构为标准 var-cell/var-switch 组件

@@ -22,6 +22,9 @@ from utils.validators import Validator
 
 _CONSOLE_API_BASE = 'https://api.console.easytier.net'
 _DEFAULT_CONFIG_SERVER_URL = 'tcp://et-web.console.easytier.net:22020'
+# 校验 config_server 格式：proto://host:port[/path]
+# proto 只允许 tcp/udp，host:port 必填，path 可选（带 token 时必须有）
+_CONFIG_SERVER_RE = re.compile(r'^(tcp|udp)://[A-Za-z0-9_.\-]+:\d{1,5}(/.*)?$')
 
 
 def list_lan_ips(*args, **kwargs):
@@ -126,13 +129,12 @@ def save_cloud(data, *args, **kwargs):
     profile_name = security.validate_profile(profile_name)
     if not profile_name:
         raise HttpException(get_message('config.invalid_name', profile=profile_name))
-    bootstrap_token = data.get('bootstrap_token', '').strip()
-    if not bootstrap_token:
-        raise HttpException('bootstrap_token is required')
-    # 验证 token 格式：允许字母、数字、下划线、连字符
-    if not re.match(r'^[a-zA-Z0-9_\-]+$', bootstrap_token):
-        raise HttpException('bootstrap_token format is invalid')
-    config_server = data.get('config_server', '').strip() or _DEFAULT_CONFIG_SERVER_URL
+    # config_server 现在是单字段完整 URL：proto://host:port[/token|admin|...]
+    config_server = data.get('config_server', '').strip()
+    if not config_server:
+        raise HttpException('config_server is required')
+    if not _CONFIG_SERVER_RE.match(config_server):
+        raise HttpException('config_server format is invalid, expected: proto://host:port[/token]')
     secure_mode = data.get('secure_mode', True)
     if isinstance(secure_mode, str):
         secure_mode = secure_mode.lower() == 'true'
@@ -146,18 +148,19 @@ def save_cloud(data, *args, **kwargs):
     with open(et_config_file, "r", encoding="utf-8") as f:
         doc = tomlkit.parse(f.read())
     doc['instance_name'] = profile_name
+    # 存储完整 URL，token 作为路径段已经包含在 config_server 里
     doc['cloud'] = {
         'config_server': config_server,
-        'bootstrap_token': bootstrap_token,
         'secure_mode': secure_mode,
     }
     with open(et_config_file, "w", encoding="utf-8") as f:
         f.write(tomlkit.dumps(doc))
 
+    # 兼容旧字段：bootstrap_token 留空（旧代码读取时不会报错），不再参与启动命令拼接
     et_run_info.save(profile, None, None, None,
                      config_mode='cloud',
                      cloud_config_server=config_server,
-                     cloud_bootstrap_token=bootstrap_token,
+                     cloud_bootstrap_token='',
                      cloud_secure_mode=secure_mode)
     return {'profile': profile, 'name': profile_name}
 

@@ -87,14 +87,30 @@ def start(params=None, *args, **kwargs):
         # 使用用列表传参，避免执行文件路径含空格，导致报错找不到文件
         cmd = [
             f"{os.path.join(run_configs.core_dir(), 'easytier-core')}{_ext}",
-            "-c",
-            config_file,
+        ]
+        # 根据配置模式选择启动方式
+        if info is not None and info.config_mode == 'cloud' and info.cloud_bootstrap_token:
+            config_server_url = info.cloud_config_server or 'tcp://et-web.console.easytier.net:22020'
+            if config_server_url.endswith('/'):
+                config_server_url = config_server_url[:-1]
+            config_server_url = f"{config_server_url}/{info.cloud_bootstrap_token}"
+            secure_mode = 'true' if info.cloud_secure_mode else 'false'
+            cmd.extend([
+                "--config-server", config_server_url,
+                "--secure-mode", secure_mode,
+            ])
+        else:
+            cmd.extend([
+                "-c",
+                config_file,
+            ])
+        cmd.extend([
             "-r",
             rpc_portal,
             f"--file-log-dir", f"{run_configs.log_dir()}",
             f"--file-log-level", f"{info.log_level or 'error'}",
             f"--file-log-size", f"50"  # 单个文件日志大小，单位 MB，默认值为 100MB
-        ]
+        ])
         logging.info(f"启动ET命令: {cmd}")
         pm = _get_process_manager(profile)
         pm.start(cmd)
